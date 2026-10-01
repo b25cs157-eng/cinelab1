@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>CineLab – Film Study Planner</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>
+:root {
+  --bg:#080a0f; --bg2:#101318; --bg3:#181c24; --bg4:#1f2330;
+  --tx:#ddd9d0; --mu:#7a8194; --ac:#d4a843; --ac2:#b8903a;
+  --bd:#252932; --v:#52b07c; --r:#5b8fd4; --ai:#9b6fd4; --u:#d4a843;
+  --red:#c0392b; --teal:#2980b9;
+  --fw:400; --fb:600;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 58px)}
+body{background:var(--bg);color:var(--tx);font:15px/1.6 'Georgia','Times New Roman',serif;min-height:100vh;overflow-x:hidden}
+h1,h2,h3,h4,button,input,select,textarea,.sans{font-family:system-ui,-apple-system,'Segoe UI',sans-serif}
+a{color:var(--ac);text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* HEADER */
+header{
+  display:flex;flex-wrap:wrap;gap:8px;align-items:center;
+  padding:10px 16px;border-bottom:1px solid var(--bd);
+  position:sticky;top:env(safe-area-inset-top,0px);
+  background:#080a0fee;backdrop-filter:blur(12px);z-index:10
+}
+.logo{font:700 18px system-ui;letter-spacing:.2em;color:var(--ac);white-space:nowrap}
+.logo span{color:var(--mu);font-weight:400}
+nav{display:flex;gap:4px;flex-wrap:wrap}
+.search-wrap{flex:1;min-width:160px;position:relative;max-width:320px}
+.search-wrap input{width:100%;padding:7px 10px 7px 32px}
+.search-wrap::before{content:'⌕';position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--mu);font-size:16px;pointer-events:none}
+#q-clear{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--mu);cursor:pointer;padding:2px;font-size:12px;display:none}
+
+/* FORMS */
+button,.btn{background:var(--bg3);color:var(--tx);border:1px solid var(--bd);border-radius:7px;padding:6px 11px;cursor:pointer;font-size:13px;transition:border-color .15s,background .15s;white-space:nowrap}
+button:hover{border-color:var(--ac);background:var(--bg4)}
+button.on{background:var(--ac);color:#0a0800;border-color:var(--ac);font-weight:600}
+button.on:hover{background:var(--ac2)}
+button.small{padding:3px 8px;font-size:12px}
+button.danger{border-color:#c0392b;color:#e07060}
+button.danger:hover{background:#300}
+input,select,textarea{background:var(--bg3);color:var(--tx);border:1px solid var(--bd);border-radius:7px;padding:7px 10px;font-size:14px;outline:none;transition:border-color .15s}
+input:focus,select:focus,textarea:focus{border-color:var(--ac)}
+select option{background:var(--bg3)}
+textarea{width:100%;min-height:80px;resize:vertical;line-height:1.5}
+
+/* LAYOUT */
+main{max-width:1180px;margin:0 auto;padding:20px 16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+.grid-sm{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.three{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+@media(max-width:740px){.two,.three{grid-template-columns:1fr}}
+@media(max-width:500px){.grid{grid-template-columns:1fr}}
+
+/* CARDS */
+.card{background:var(--bg2);border:1px solid var(--bd);border-radius:12px;padding:16px}
+.card.m{cursor:pointer;border-top:3px solid var(--c,var(--bd));transition:transform .15s,border-color .15s,box-shadow .15s}
+.card.m:hover{transform:translateY(-3px);border-color:var(--c,var(--ac));box-shadow:0 8px 32px #0006}
+.card-inner{display:flex;flex-direction:column;gap:6px;height:100%}
+
+/* TYPOGRAPHY */
+.page-title{font-size:24px;font-weight:700;margin-bottom:4px;letter-spacing:-.01em}
+.section-label{font-size:11px;font-weight:600;letter-spacing:.1em;color:var(--mu);text-transform:uppercase;margin-bottom:8px}
+.mu{color:var(--mu);font-size:13px}
+.tx-sm{font-size:13px}
+.tx-xs{font-size:12px}
+.bold{font-weight:600}
+
+/* TAGS & CHIPS */
+.tag{display:inline-block;font:700 10px system-ui;letter-spacing:.05em;padding:2px 6px;border-radius:4px;color:#000;white-space:nowrap;vertical-align:middle;margin-right:4px}
+.tV{background:var(--v)}.tR{background:var(--r);color:#fff}.tAI{background:var(--ai);color:#fff}.tU{background:var(--u)}
+.chip{display:inline-block;font:12px system-ui;padding:3px 9px;border-radius:99px;border:1px solid var(--bd);color:var(--mu);margin:2px 3px 2px 0;cursor:pointer;transition:all .12s}
+.chip:hover{border-color:var(--ac);color:var(--ac)}
+.chip.sel,.chip.active{background:var(--ac);color:#0a0800;border-color:var(--ac);font-weight:600}
+.chip.big{padding:5px 12px;font-size:13px}
+
+/* PROGRESS BAR */
+.bar{height:8px;background:var(--bg4);border-radius:8px;overflow:hidden}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--ac),#e06c3a);border-radius:8px;transition:width .4s}
+
+/* STARS */
+.stars span{cursor:pointer;font-size:20px;color:var(--bg4);line-height:1;transition:color .1s}
+.stars span.f,.stars:hover span:hover~span{color:var(--bg4)}
+.stars:hover span{color:var(--ac)}
+.stars span.f,.stars span:hover,.stars span:hover~span.f{color:var(--ac)}
+
+/* TIMELINE */
+.timeline{position:relative;height:44px;background:var(--bg4);border-radius:8px;margin:10px 0;overflow:hidden;cursor:crosshair}
+.timeline-bar{position:absolute;top:0;bottom:0;left:0;background:linear-gradient(90deg,#1d202a,#252932);pointer-events:none}
+.timeline-mark{position:absolute;top:5px;width:4px;height:34px;border-radius:3px;background:var(--ac);cursor:pointer;transition:background .1s}
+.timeline-mark:hover{background:#fff;z-index:2}
+.timeline-mark.sel{background:#fff;outline:2px solid var(--ac)}
+
+/* SPOILER */
+.spoil{filter:blur(5px);cursor:pointer;user-select:none;border-radius:4px}
+.spoil.show{filter:none;cursor:auto}
+
+/* TABLE */
+table{width:100%;border-collapse:collapse}
+th,td{padding:7px 8px;border-bottom:1px solid var(--bd);text-align:left;font-size:13px;vertical-align:top}
+th{color:var(--mu);font-weight:600;font-size:11px;letter-spacing:.06em;text-transform:uppercase}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg3)}
+
+/* FILM HERO */
+.film-hero{background:linear-gradient(135deg,var(--bg3),var(--bg2));border:1px solid var(--bd);border-radius:14px;padding:22px;margin-bottom:16px;border-left:4px solid var(--c,var(--ac))}
+.film-hero h2{font-size:28px;font-weight:700;margin-bottom:4px}
+.runtime-badge{display:inline-flex;align-items:center;gap:4px;font:12px system-ui;background:var(--bg4);border:1px solid var(--bd);border-radius:6px;padding:2px 8px;color:var(--mu)}
+
+/* FRAME ANALYSIS */
+#fr img{max-width:100%;border-radius:8px;margin:10px 0}
+.fr-guide{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.fr-guide span{font:11px system-ui;padding:2px 7px;background:var(--bg4);border-radius:4px;color:var(--mu)}
+
+/* LABEL */
+label.ck{display:flex;gap:8px;align-items:flex-start;padding:4px 0;cursor:pointer}
+label.ck input{margin-top:3px;flex-shrink:0;accent-color:var(--ac)}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--bd);border-radius:3px}
+
+/* STAT CARDS */
+.stat-card{background:var(--bg2);border:1px solid var(--bd);border-radius:12px;padding:18px;text-align:center}
+.stat-num{font-size:36px;font-weight:700;color:var(--ac);line-height:1;margin:4px 0}
+.stat-label{font-size:12px;color:var(--mu);font-family:system-ui}
+
+/* FILTER BAR */
+.filter-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:16px;padding:12px 14px;background:var(--bg2);border:1px solid var(--bd);border-radius:10px}
+
+/* EMPTY STATE */
+.empty{text-align:center;padding:40px 20px;color:var(--mu);font-family:system-ui}
+.empty-icon{font-size:36px;margin-bottom:10px}
+
+/* LEGEND */
+.legend{font:12px system-ui;color:var(--mu);margin-top:14px;line-height:1.7}
+
+/* TOAST */
+#toast{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px)+16px);left:50%;transform:translateX(-50%) translateY(60px);background:var(--bg3);border:1px solid var(--ac);border-radius:8px;padding:10px 20px;font:14px system-ui;color:var(--ac);z-index:999;transition:transform .25s;pointer-events:none}
+#toast.show{transform:translateX(-50%) translateY(0)}
+
+/* TABS */
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--bd);margin-bottom:16px}
+.tab{padding:8px 16px;cursor:pointer;font:14px system-ui;color:var(--mu);border-bottom:2px solid transparent;margin-bottom:-1px;transition:color .12s}
+.tab.on{color:var(--ac);border-bottom-color:var(--ac)}
+.tab:hover{color:var(--tx)}
+
+/* WATCHLIST BADGE */
+.wl-badge{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--ac);margin-right:4px}
+
+/* DECADE CHART */
+.decade-chart{display:flex;align-items:flex-end;gap:4px;height:60px;margin:10px 0}
+.decade-col{flex:1;background:var(--bg4);border-radius:3px 3px 0 0;min-width:24px;position:relative;transition:background .15s;cursor:pointer}
+.decade-col:hover,.decade-col.sel{background:var(--ac)}
+.decade-col span{position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);font:10px system-ui;color:var(--mu);white-space:nowrap}
+
+.hide{display:none!important}
+</style>
+</head>
+<body>
+<div id="toast"></div>
+<header>
+  <div class="logo">▣ CINE<span>LAB</span></div>
+  <nav id="nav"></nav>
+  <div class="search-wrap">
+    <input id="q" placeholder="Search film, director, cast…" autocomplete="off">
+    <button id="q-clear" onclick="$('q').value='';$('q-clear').style.display='none';if(view!='browse')go('browse');else render()">✕</button>
+  </div>
+</header>
+<main id="app"></main>
+<script>
+// ═══════════════════════════════════════════════
+//  FILM DATABASE — 30 films, full data
+// ═══════════════════════════════════════════════
+const F=[
+{id:'parasite',t:'Parasite',y:2019,d:'Bong Joon-ho',lang:'Korean',g:['Thriller','Dark Comedy','Drama'],mood:['tense','darkly funny','suspenseful'],th:['class','deception','space','capitalism'],rt:132,cast:['Song Kang-ho','Choi Woo-shik','Park So-dam','Cho Yeo-jeong','Lee Sun-kyun','Chang Hyae-jin'],crew:{Cinematography:'Hong Kyung-pyo',Editing:'Yang Jin-mo',Music:'Jung Jae-il','Production Design':'Lee Ha-jun'},log:'A struggling family schemes its way into the lives of a wealthy household—until an unexpected discovery upends their plan.',spoil:'The plot pivots on a hidden basement tenant. A catastrophic garden party results in multiple deaths. The father kills the patriarch and vanishes underground.',st:{Cinematography:'Vertical staging — stairs, hills, basements — turn architecture into class geography. Every frame is a social diagram.',Color:'The Parks\' home is bright, clean, cream-toned; the Kims\' semi-basement is dim and undersaturated. Rain erases the difference — but only temporarily.',Editing:'Smooth tonal gear-shifts; two long crosscut sequences contrast the households watching the same rainfall from opposite socioeconomic heights.',Sound:'Mostly restrained; Jung Jae-il\'s score escalates only in the final act. Silence and ambient rain do heavy lifting.',Design:'A built-set house designed to control sightlines; the stairs are architecture as ideology.'},ds:'Bong genre-blends by shifting registers — dark comedy to thriller to tragedy — while keeping each character sympathetic. Precise blocking and allegory.',mo:['stairs','rain','the scholar\'s stone','the smell','the line'],cr:'#4fb286'},
+{id:'br2049',t:'Blade Runner 2049',y:2017,d:'Denis Villeneuve',lang:'English',g:['Sci-Fi','Neo-noir','Drama'],mood:['contemplative','melancholic','awe-inspiring'],th:['identity','memory','what is real','humanity'],rt:164,cast:['Ryan Gosling','Harrison Ford','Ana de Armas','Sylvia Hoeks','Robin Wright','Jared Leto','Dave Bautista'],crew:{Cinematography:'Roger Deakins',Editing:'Joe Walker',Music:'Hans Zimmer, Benjamin Wallfisch','Production Design':'Dennis Gassner'},log:'A young blade runner discovers a secret that could destabilize the already fragile social order — and forces him to question his own existence.',spoil:'K believes himself the miraculous replicant-born child but learns otherwise. He sacrifices himself to reunite Deckard with his daughter. The true miracle remains ambiguous.',st:{Cinematography:'Wide, symmetrical compositions with tiny figures against vast spaces. Each environment has its own colour temperature: orange haze (LA), cold grey-green (farms), sickly yellow (Las Vegas).',Color:'Monochrome washes demarcate geography and emotional state. Warm candlelight intrudes only in human moments.',Editing:'Patient, slow cutting. Villeneuve trusts silence and lets scenes breathe — rare in contemporary studio films.',Sound:'Zimmer/Wallfisch\'s low synth drones and percussive blasts create physical unease. Silence is weaponised.',Design:'Brutalist, monumental, entropy-laden. Scale communicates power and irrelevance simultaneously.'},ds:'Atmosphere-first cinema. Denis Villeneuve uses scale, patience and restraint: the camera respects space, time, and ambiguity.',mo:['eyes','snow and ash','holograms','orange haze','bees'],cr:'#e0763a'},
+{id:'itmfl',t:'In the Mood for Love',y:2000,d:'Wong Kar-wai',lang:'Cantonese',g:['Romance','Drama'],mood:['yearning','melancholic','sensual'],th:['restraint','longing','memory','time'],rt:98,cast:['Tony Leung Chiu-wai','Maggie Cheung Man-yuk'],crew:{Cinematography:'Christopher Doyle, Mark Lee Ping-bin',Editing:'William Chang, Chan Ki-hop','Production Design':'William Chang',Music:'Michael Galasso, Shigeru Umebayashi'},log:'Two neighbours in 1962 Hong Kong suspect their spouses are having an affair and, while trying to understand the betrayal, develop a deep, unspoken bond of their own.',spoil:'Their love is never consummated. Years later, at Angkor Wat, a man whispers a secret into a crack in a stone wall. Memory and loss are the true subjects.',st:{Cinematography:'Confined by doorways, mirrors, windows and staircases. Characters are never fully visible; the camera lurks and frames them as if their own emotions are watching.',Color:'Saturated reds, teals, and greens. Mrs Chan\'s cheongsam patterns change every scene — a subtle costume clock.',Editing:'Elliptical repetition of small routines (the noodle shop staircase) in slow motion. Time loops; scenes rhyme.',Sound:'Shigeru Umebayashi\'s Yumeji\'s Theme — a waltz — recurs like a wound reopening.',Design:'Cramped, wallpapered 1960s apartments where proximity is unavoidable.'},ds:'Wong Kar-wai works intuitively: no full script, improvisational shooting, obsessive post-production assembly. Mood precedes plot.',mo:['cheongsam','the noodle staircase','smoke','the clock'],cr:'#c0392b'},
+{id:'pulp',t:'Pulp Fiction',y:1994,d:'Quentin Tarantino',lang:'English',g:['Crime','Dark Comedy','Drama'],mood:['cool','darkly funny','intense'],th:['chance','redemption','violence','narrative order'],rt:154,cast:['John Travolta','Samuel L. Jackson','Uma Thurman','Bruce Willis','Harvey Keitel','Tim Roth','Amanda Plummer'],crew:{Cinematography:'Andrzej Sekuła',Editing:'Sally Menke',Music:'Various (needle-drop)','Production Design':'Sandy Reynolds-Wasco'},log:'Interlocking Los Angeles crime stories told out of chronological order: hitmen, a gangster\'s wife, a boxer, and a pair of diner robbers whose paths converge through chance.',spoil:'The suitcase contents are never revealed. Jules has a spiritual conversion after miraculously surviving gunshots; Vincent dies mid-film but we see him alive in the final chapter due to the restructured timeline.',st:{Cinematography:'Long masters and two-shot dialogues. Tarantino rarely cuts during conversation. The iconic trunk-view shot positions us as the car\'s cargo.',Color:'Warm, saturated 70s palette. Yellow and red recur.',Editing:'Chapter structure. Non-linear reassembly rewards second viewings; each scene is complete as a short film.',Sound:'The needle-drop soundtrack (Dusty Springfield, Chuck Berry, Kool & the Gang) tells us how to feel before the scene earns it.',Design:'Diners, apartments and warehouses kept deliberately mundane — everyday settings for extreme events.'},ds:'Tarantino weaponises dialogue: talk delays, deflects and reframes violence. The chapter structure lets each scene function independently.',mo:['the briefcase','food (burgers, milkshakes)','pop songs','watches'],cr:'#e0b73a'},
+{id:'spirited',t:'Spirited Away',y:2001,d:'Hayao Miyazaki',lang:'Japanese',g:['Animation','Fantasy','Adventure'],mood:['wondrous','melancholic','hopeful'],th:['growing up','identity','greed','labour'],rt:125,cast:['Rumi Hiiragi (voice)','Miyu Irino (voice)','Mari Natsuki (voice)','Bunta Sugawara (voice)'],crew:{Music:'Joe Hisaishi',Animation:'Studio Ghibli','Art Director':'Yoji Takeshige'},log:'Ten-year-old Chihiro stumbles into a spirit world and must work in a bathhouse to survive and free her parents, who were turned into pigs for eating the spirits\' food.',spoil:'Haku is revealed as the spirit of a river Chihiro nearly drowned in as a child. Names are the source of power and identity — forgetting your name means losing yourself. Chihiro earns her parents\' freedom through selflessness.',st:{Cinematography:'Hand-drawn layouts with extraordinary depth of field. Foreground, mid-ground, and background all contain action.',Color:'Rich, warm painted palettes shift between enchantment and menace. Soot sprites are rendered in monochrome.',Editing:'"Ma" — deliberate pauses. Miyazaki uses stillness as rhythm, not dead air.',Sound:'Joe Hisaishi\'s score — piano, orchestral — is both playful and heartbreaking. The train sequence has no dialogue.',Design:'The bathhouse is a maze of Edwardian tiles, open kitchens, and impossible staircases — a spirit-world economy in architectural form.'},ds:'Miyazaki creates without a finalised script, drawing scenes first. He avoids clear-cut villains; every character has comprehensible motivations.',mo:['trains','water','names and forgetting','food'],cr:'#3a9be0'},
+{id:'2001',t:'2001: A Space Odyssey',y:1968,d:'Stanley Kubrick',lang:'English',g:['Sci-Fi','Drama'],mood:['awe-inspiring','cold','mysterious'],th:['evolution','technology','the unknown','consciousness'],rt:149,cast:['Keir Dullea','Gary Lockwood','Douglas Rain (voice)'],crew:{Cinematography:'Geoffrey Unsworth, John Alcott',Editing:'Ray Lovejoy',Music:'Various (classical)',VFX:'Douglas Trumbull'},log:'From prehistoric Africa to deep space: humanity encounters a mysterious monolith at three pivotal moments in its evolution.',spoil:'HAL 9000 murders most of the crew to protect the mission\'s true objective. Bowman deactivates HAL and passes through the Star Gate; the final sequence is a transcendent, literal rebirth — Bowman becomes the Star Child.',st:{Cinematography:'Symmetrical one-point perspective. Long takes; Kubrick holds shots long after the action is over. The cameras were built into spinnable sets.',Color:'Clinical whites and greys in space; deep reds (HAL\'s eye, the pod bay) signal danger. The final room is inexplicably lit from below.',Editing:'The cut from bone to spacecraft is cinema\'s most famous. Match cuts link past, present and future.',Sound:'Classical music chosen first; the film was edited to the music. Ligeti\'s micropolyphony and Strauss fanfares still define "space".',Design:'Kubrick partnered with aerospace companies for authenticity. Sets were engineering problems.'},ds:'Kubrick withholds explanation: no score cues, no exposition. The audience must construct meaning. Visual storytelling with minimal dialogue.',mo:['the monolith','circles and alignment','red light','the eye'],cr:'#9aa4b8'},
+{id:'samurai7',t:'Seven Samurai',y:1954,d:'Akira Kurosawa',lang:'Japanese',g:['Action','Drama','Epic'],mood:['epic','human','tense'],th:['duty','class','community','honour'],rt:207,cast:['Toshiro Mifune','Takashi Shimura','Yoshio Inaba','Seiji Miyaguchi'],crew:{Cinematography:'Asakazu Nakai',Music:'Fumio Hayasaka','Art Direction':'Sô Matsuyama'},log:'A village threatened by bandits hires seven ronin — masterless samurai — for protection. What follows is a masterclass in ensemble storytelling and action editing.',spoil:'The battle is won, but four of the seven samurai die. The village celebrates and the survivors realise the farmers are the true victors — the samurai merely passed through.',st:{Cinematography:'Multiple cameras capture action simultaneously — revolutionary for 1954. Telephoto lenses compress space and intensify duels.',Color:'High-contrast black-and-white. Rain, mud and smoke blur moral clarity.',Editing:'Dynamic rhythmic cutting during action; slower pacing for character. Wipe transitions link sequences.',Sound:'Fumio Hayasaka\'s taiko drumming is urgency embodied.',Design:'Practical, worn-in sets — the village feels inhabited before filming starts.'},ds:'Kurosawa builds character precisely: each of the seven is differentiated in introduction scene. He stages action for clarity and emotional impact above realism.',mo:['rain and mud','banners and marks','the gravesite','wind in the crops'],cr:'#8b7355'},
+{id:'moonlight',t:'Moonlight',y:2016,d:'Barry Jenkins',lang:'English',g:['Drama'],mood:['tender','quiet','heartbreaking'],th:['identity','masculinity','belonging','love'],rt:111,cast:['Trevante Rhodes','Ashton Sanders','Alex R. Hibbert','Mahershala Ali','Naomie Harris','Janelle Monáe','André Holland'],crew:{Cinematography:'James Laxton',Editing:'Nat Sanders, Joi McMillon',Music:'Nicholas Britell','Production Design':'Hannah Beachler'},log:'Three chapters — boy, teenager, man — in the life of Chiron, growing up Black and gay in Liberty City, Miami.',spoil:'The adult Chiron (now "Black") has reinvented himself as a drug dealer, armoured and silent. He drives to see Kevin, his first love, who is working as a cook. In the film\'s final moments, Chiron admits Kevin is the only person who has ever touched him.',st:{Cinematography:'Intimate close-ups; camera moves in slow circles around characters. Faces are the landscape.',Color:'Saturated blues and pinks — Miami\'s neon, the ocean, the night sky.',Editing:'Three-chapter structure with 10-year ellipses. Nat Sanders and Joi McMillon were the first Black editors nominated for the Academy Award.',Sound:'Nicholas Britell\'s "chopped and screwed" strings — classical music processed through hip-hop techniques.',Design:'Real Miami locations. Authenticity over period reconstruction.'},ds:'Barry Jenkins makes subjectivity tactile: the camera moves like an emotion. He privileges feeling over event.',mo:['water','faces in close-up','the ocean','blue'],cr:'#3a6ee0'},
+{id:'mulholland',t:'Mulholland Drive',y:2001,d:'David Lynch',lang:'English',g:['Mystery','Thriller','Neo-noir'],mood:['dreamlike','unsettling','mysterious'],th:['dreams vs reality','desire','Hollywood','identity'],rt:147,cast:['Naomi Watts','Laura Harring','Justin Theroux','Ann Miller'],crew:{Cinematography:'Peter Deming',Editing:'Mary Sweeney',Music:'Angelo Badalamenti','Production Design':'Jack Fisk'},log:'An aspiring actress and an amnesiac woman with dark hair investigate a mystery in Hollywood — or is it all a dream?',spoil:'The film is non-linear. The first two-thirds are a wish-fulfilment fantasy constructed by Diane, a failed actress. The blue box unlocks the "real" timeline: Diane hired a hitman to kill her former lover Camilla, then hallucinates and kills herself.',st:{Cinematography:'Long, slow glides through darkness. Lynch and Deming use deep focus and close-ups that feel invasive.',Color:'Saturated blues in shadow sequences; warm Hollywood amber in fantasy.',Editing:'Deliberately disorienting. Lynch refuses causal linearity; emotion is the connective tissue.',Sound:'Badalamenti\'s score — lush, threatening — tells you more than the dialogue. The Silencio scene uses sound as metaphysics.',Design:'Hollywood glamour deteriorated: bungalows, studios, clubs rendered slightly wrong.'},ds:'Lynch works from intuition and image. He refuses interpretation, calling it a "love story in the city of dreams".',mo:['the blue key and box','the diner','the club Silencio','the red lampshade'],cr:'#7b68ee'},
+{id:'roma',t:'Roma',y:2018,d:'Alfonso Cuarón',lang:'Spanish (Mexican)',g:['Drama'],mood:['quiet','intimate','emotional'],th:['class','womanhood','memory','Mexico'],rt:135,cast:['Yalitza Aparicio','Marina de Tavira','Diego Cortina Autrey'],crew:{Cinematography:'Alfonso Cuarón',Editing:'Alfonso Cuarón','Production Design':'Eugenio Caballero'},log:'A year in the life of Cleo, a domestic worker in Mexico City\'s Colonia Roma neighbourhood, in the early 1970s — observed from an intimate distance.',spoil:'Cleo discovers she is pregnant; her boyfriend abandons her. The baby is stillborn during a hospital strike amid political violence. In the film\'s climax, Cleo saves two children from the ocean despite not knowing how to swim.',st:{Cinematography:'Shot by Cuarón himself in black-and-white digital (Netflix original). Extremely long, slow 360° pans. The camera is equidistant from everything, never privileging anyone.',Color:'Deep, luminous black-and-white. Shadow and light do the emotional work.',Editing:'Slow, with long masters. Scenes are rarely fragmented; we observe rather than experience.',Sound:'Extraordinarily dense ambient soundscape — dog, children, street, television — mixed at a level where the background crowds the foreground.',Design:'Period-perfect reconstruction of early-70s Mexico City; Cuarón based it on his own childhood memories.'},ds:'Cuarón turns autobiography into objectivity. Roma is a film about a servant rendered with more dignity than the family she serves, without sentimentality.',mo:['the airplane in the sky','dog excrement (ironic dignity)','the ocean','the TV'],cr:'#888'},
+{id:'sozinha',t:'Portrait of a Lady on Fire',y:2019,d:'Céline Sciamma',lang:'French',g:['Romance','Drama','Period'],mood:['intense','tender','bittersweet'],th:['gaze','desire','freedom','memory'],rt:121,cast:['Noémie Merlant','Adèle Haenel','Luàna Bajrami','Valeria Golino'],crew:{Cinematography:'Claire Mathon',Editing:'Julien Lacheray',Music:'Para One (end credits)','Costume Design':'Dorothée Guiraud'},log:'18th-century Brittany: a painter is commissioned to secretly portray a young noblewoman destined for an arranged marriage. They fall in love.',spoil:'Their affair ends when the noblewoman\'s fiancé arrives. Decades later, the painter sees her portrait on display and then spots her in an audience, overcome with emotion listening to Vivaldi — the music she heard for the first time in their brief shared life.',st:{Cinematography:'Claire Mathon\'s DP work eschews artifice. Natural light only: candles, open windows. The film is lit as 18th-century painting.',Color:'Deep, saturated blues and greens. The famous fire sequence: Héloïse in flames, lit from within.',Editing:'Unhurried. Scenes accumulate through glances, hands, pauses.',Sound:'Almost no score — diegetic sound and two pieces of classical music. The Vivaldi eruption at the end is devastating.',Design:'Isolated, sea-facing Breton manor. The landscape encodes freedom and limitation simultaneously.'},ds:'Sciamma structures the gaze itself: who looks, who is looked at, and who reclaims control of their own image.',mo:['fire','the painting','Eurydice turning back','the Vivaldi'],cr:'#2e86c1'},
+{id:'yanks',t:'Chinatown',y:1974,d:'Roman Polanski',lang:'English',g:['Mystery','Neo-noir','Thriller'],mood:['cynical','tense','dark'],th:['corruption','truth','power','loss of innocence'],rt:131,cast:['Jack Nicholson','Faye Dunaway','John Huston','Diane Ladd'],crew:{Cinematography:'John A. Alonzo',Editing:'Sam O\'Steen',Music:'Jerry Goldsmith','Screenplay':'Robert Towne'},log:'A private detective hired for a routine infidelity case unravels a vast conspiracy involving water rights, incest, and murder in 1930s Los Angeles.',spoil:'Noah Cross is Evelyn\'s father and the father of her daughter. He has arranged everything — the murder, the water rights, the deception. In the end, Cross wins. Evelyn is shot dead; he takes the girl. Jake, the detective, is told: "Forget it, Jake. It\'s Chinatown."',st:{Cinematography:'Alonzo uses a restrained 1970s style — earth tones, long lenses. Reverse-engineered 1930s photography.',Color:'Dusty golden brown — California sun as moral corruption.',Editing:'Classical cutting; the mystery\'s pleasure is in revelation-timing.',Sound:'Goldsmith\'s trumpet theme is nostalgia and tragedy simultaneously.',Design:'Period-perfect LA: the valley, the water commission, the Chinatown district.'},ds:'Polanski\'s neo-noir rewrites the genre: there is no justice. The detective\'s competence is irrelevant; power wins.',mo:['water','the cut nose','the broken glasses','Chinatown as metaphor'],cr:'#c19a6b'},
+{id:'fanny',t:'Fanny and Alexander',y:1982,d:'Ingmar Bergman',lang:'Swedish',g:['Drama','Fantasy'],mood:['rich','dark','wonder-filled'],th:['childhood','death','theatre','family'],rt:188,cast:['Bertil Guve','Pernilla Allwin','Gunn Wållgren','Ewa Fröling','Jan Malmsjö'],crew:{Cinematography:'Sven Nykvist',Editing:'Sylvia Ingemarsson','Production Design':'Anna Asp'},log:'The Ekdahl family — theatrical, exuberant, dysfunctional — moves through Christmas, death, remarriage and ordeal in early 20th-century Uppsala.',spoil:'Their mother\'s new husband, a rigid bishop, is a tyrant. Alexander\'s imagination may have killed him — or a ghost may have. The ambiguity is deliberate: the theatrical and magical are equally real.',st:{Cinematography:'Sven Nykvist\'s warm, candlelit interiors. The first act glows with an almost impossible richness.',Color:'Act one: warm amber and reds, Christmas excess. Act two: cold stone grey, the bishop\'s house drained of colour.',Editing:'The 312-minute TV version allows operatic pacing; the theatrical cut condenses to 188.',Sound:'Minimal score; ambient domestic sounds become musical.',Design:'Every room is a portrait of its inhabitant\'s soul.'},ds:'Bergman\'s last theatrical film — a summation of his career themes. He uses a child\'s eyes to look at everything he has ever made.',mo:['the magic lantern','the ghost','puppets and theatre','the Christmas feast'],cr:'#8b4513'},
+{id:'there',t:'There Will Be Blood',y:2007,d:'Paul Thomas Anderson',lang:'English',g:['Drama','Epic'],mood:['intense','operatic','unsettling'],th:['capitalism','religion','greed','isolation'],rt:158,cast:['Daniel Day-Lewis','Paul Dano','Kevin J. O\'Connor'],crew:{Cinematography:'Robert Elswit',Editing:'Dylan Tichenor',Music:'Jonny Greenwood','Production Design':'Jack Fisk'},log:'The rise of Daniel Plainview, oil prospector turned tycoon, and his collisions with a young preacher in California at the turn of the 20th century.',spoil:'Eli Sunday is a fraud; Plainview always knew. In the final scene, Plainview murders Eli in his bowling alley, screaming "I\'m finished!" — the American project consuming itself.',st:{Cinematography:'Robert Elswit\'s scope — wide vistas, isolation. Long takes. Early sequences have no dialogue for 15 minutes.',Color:'Ochre, brown, dust. Oil black. The landscape is indifferent.',Editing:'Abrupt, willful. Anderson uses hard cuts that resist conventional rhythm.',Sound:'Jonny Greenwood\'s dissonant strings — Brahms corrupted. The oil derrick fire scene scores to Arvo Pärt.',Design:'Period-authentic California locations; some of the most convincing period design in American film.'},ds:'PTA makes character as spectacle. He refuses to make Plainview sympathetic or legible: the performance is all surface, which becomes its own kind of depth.',mo:['oil as blood','the bowling alley','the oil fire','milk'],cr:'#8b4513'},
+{id:'synecdoche',t:'Synecdoche, New York',y:2008,d:'Charlie Kaufman',lang:'English',g:['Drama','Fantasy'],mood:['existential','melancholic','overwhelming'],th:['mortality','art','regret','time'],rt:124,cast:['Philip Seymour Hoffman','Samantha Morton','Michelle Williams','Catherine Keener','Emily Watson','Dianne Wiest'],crew:{Cinematography:'Frederick Elmes',Editing:'Robert Frazen',Music:'Jon Brion','Production Design':'Mark Friedberg'},log:'Theatre director Caden Cotard spends decades building an ever-expanding theatrical simulation of his life inside a vast New York warehouse, as time accelerates and his cast begins replacing him.',spoil:'Caden is eventually played by someone else. Time collapses. In the end, a voice in his ear tells him to "die now" — and he does. The work was never finished; he was always already dying.',st:{Cinematography:'Naturalistic, almost documentary at first. As the film progresses, space becomes impossible; two realities occupy the same frame.',Color:'Muted, grey-green, unhealthy.',Editing:'Time warps subtly, then catastrophically. Years pass in cuts.',Sound:'Jon Brion\'s score builds from sparse to overwhelming. Kaufman uses songs diegetically to collapse irony.',Design:'The warehouse set that contains another New York is one of cinema\'s great conceptual designs.'},ds:'Kaufman works backward from death to examine every life choice. The film resists summary; it must be experienced.',mo:['the warehouse','fire (the house burns for decades)','the box office lady','changing names'],cr:'#5c6bc0'},
+{id:'godf',t:'The Godfather',y:1972,d:'Francis Ford Coppola',lang:'English',g:['Crime','Drama','Epic'],mood:['weighty','operatic','tragic'],th:['family','power','corruption','the American dream'],rt:175,cast:['Marlon Brando','Al Pacino','James Caan','Robert Duvall','Diane Keaton','Talia Shire'],crew:{Cinematography:'Gordon Willis',Editing:'William Reynolds, Peter Zinner',Music:'Nino Rota','Production Design':'Dean Tavoularis'},log:'The Corleone family\'s transition of power from patriarch Vito to his youngest son Michael, who was meant to escape the family business but doesn\'t.',spoil:'Michael, who began the story distant from crime, orchestrates the murder of all rival family heads and his sister\'s husband simultaneously. He becomes exactly what his family is — and loses himself in the process.',st:{Cinematography:'Gordon Willis — "the Prince of Darkness" — underlit his interiors radically. Vito\'s office opens in near-blackness.',Color:'Dark amber interiors vs. bright Sicilian exteriors. Orange (mandarin) signals death.',Editing:'The Baptism sequence cuts between sacred ritual and multiple murders.',Sound:'Nino Rota\'s trumpet theme is both romantic and fatalistic.',Design:'Meticulous period design — 1940s New York, Sicily — built from scratch.'},ds:'Coppola shoots the Mafia as American myth: the family as corporation. Tragedy operates through what goes unspoken.',mo:['the orange (death omen)','the offer you can\'t refuse','the fish (death notice)','guns in the bathroom'],cr:'#b8860b'},
+{id:'shoplifters',t:'Shoplifters',y:2018,d:'Hirokazu Kore-eda',lang:'Japanese',g:['Drama','Family'],mood:['tender','bittersweet','quiet'],th:['chosen family','poverty','belonging','crime'],rt:121,cast:['Lily Franky','Sakura Andô','Kirin Kiki','Mayu Matsuoka','Jyo Kairi','Miyu Sasaki'],crew:{Cinematography:'Ryûto Kondô',Editing:'Hirokazu Kore-eda',Music:'Haruomi Hosono'},log:'A family living on the margins of Tokyo — shoplifting for survival — takes in a young girl they find shivering outside. But family is the question, not the answer.',spoil:'None of the family members are biologically related. The grandmother was involved in a murder; the parents are not actually married. When the girl is taken by authorities, the "family" dissolves. The ending — the boy waving at an empty road — is one of cinema\'s great tearjerkers.',st:{Cinematography:'Kondô shoots tight, warm interiors. The small house is filmed as abundant, generous — the opposite of the characters\' poverty.',Color:'Warm ochres and interior lamp light vs. cold institutional whites.',Editing:'Kore-eda is his own editor. Unhurried, precise.',Sound:'Haruomi Hosono\'s minimal score supports rather than dictates emotion.',Design:'The cramped house is made vivid without caricature.'},ds:'Kore-eda builds character through accumulation of small moments. He withholds the family\'s backstory, releasing it in fragments that recontextualise everything.',mo:['shoplifting as connection','the boy at the window','fireworks heard but not seen','the grandmother on the porch'],cr:'#d4890a'},
+{id:'reqs',t:'Requiem for a Dream',y:2000,d:'Darren Aronofsky',lang:'English',g:['Drama','Thriller'],mood:['harrowing','intense','tragic'],th:['addiction','the American dream','delusion','isolation'],rt:102,cast:['Ellen Burstyn','Jared Leto','Jennifer Connelly','Marlon Wayans'],crew:{Cinematography:'Matthew Libatique',Editing:'Jay Rabinowitz',Music:'Clint Mansell','Production Design':'James Chinlund'},log:'Four people in Coney Island are consumed by addiction: Sara\'s to television and diet pills; Harry and Tyrone\'s to heroin and the dream of a deal; Marion\'s to heroin and Harry.',spoil:'All four destinies are catastrophic. Sara has a psychotic break and receives electroconvulsive therapy. Harry loses his arm to infection. Tyrone is imprisoned. Marion prostitutes herself for drugs.',st:{Cinematography:'Aronofsky and Libatique invented the "hip-hop montage" — a sequence of extreme close-ups with addictive rhythmic editing representing drug highs.',Color:'Warm, domestic at first. As addiction takes hold: washed-out, desaturated, blue-grey.',Editing:'Hyperkinetic during highs; grinding, slow during the withdrawal. The final montage cuts four stories in parallel.',Sound:'Clint Mansell\'s Lux Aeterna — now one of the most recognised pieces of modern film music.',Design:'Coney Island rendered as beauty and decline simultaneously.'},ds:'Aronofsky treats addiction formally: the camera style itself becomes addicted to intensity, mirroring the characters\' compulsion.',mo:['the fridge','the red dress','the television','the pill'],cr:'#e04040'},
+{id:'oldboy',t:'Oldboy',y:2003,d:'Park Chan-wook',lang:'Korean',g:['Mystery','Thriller','Action'],mood:['dark','intense','shocking'],th:['revenge','guilt','trauma','memory'],rt:120,cast:['Choi Min-sik','Yoo Ji-tae','Gang Hye-jeong','Kim Byung-ok'],crew:{Cinematography:'Chung Chung-hoon',Editing:'Kim Sang-bum',Music:'Cho Young-wuk','Production Design':'Ryu Seong-hie'},log:'A man imprisoned for 15 years without explanation is suddenly freed and given five days to find his captor — not knowing that his captor has also found him.',spoil:'His captor is a former schoolmate whose sister killed herself after a rumour Dae-su spread. The woman he has fallen in love with is his own daughter, engineered as revenge. He asks his hypnotist to make him forget — he may succeed.',st:{Cinematography:'Chung Chung-hoon\'s visceral camera work oscillates between formal static setups and explosive handheld.',Color:'Green-grey interiors vs. flashback warmth. The film lives in a twilight of memory.',Editing:'The hallway fight sequence — one of cinema\'s great action shots — was done in one take, 17 attempts.',Sound:'Cho Young-wuk\'s score moves between sentimental and industrial without warning.',Design:'The imprisonment room is a neutral, horrible non-place.'},ds:'Park Chan-wook works through formal rigour: compositions are precise, symmetrical, then fractured.',mo:['the hallway','the dumpling','the hypnotist','the ant'],cr:'#4a5568'},
+{id:'boyhood',t:'Boyhood',y:2014,d:'Richard Linklater',lang:'English',g:['Drama'],mood:['nostalgic','tender','real'],th:['growing up','time','family','America'],rt:165,cast:['Ellar Coltrane','Patricia Arquette','Ethan Hawke','Lorelei Linklater'],crew:{Cinematography:'Lee Daniel, Shane F. Kelly',Editing:'Sandra Adair',Music:'Various (needle-drop)'},log:'Mason\'s life from age six to eighteen, filmed over twelve actual years with the same cast.',spoil:'Nothing dramatic concludes. Mason goes to college. His mother cries at the empty house. Time is the film\'s subject and its method.',st:{Cinematography:'Different cinematographers across years; Linklater allows the visual style to evolve with the era.',Color:'The palette shifts with each period: warmer in childhood, cooler in adolescence.',Editing:'No traditional act structure. Sandra Adair assembles 12 years of footage without visible seams.',Sound:'Period pop music as time-stamps and memory triggers.',Design:'Real houses, real schools, real restaurants — locations age with Mason.'},ds:'Linklater\'s method is the message: duration equals experience. The film can only work this way.',mo:['the car radio','the night sky','Harry Potter releases','moving boxes'],cr:'#2ecc71'},
+{id:'fargo',t:'Fargo',y:1996,d:'Joel Coen, Ethan Coen',lang:'English',g:['Crime','Dark Comedy','Thriller'],mood:['darkly funny','tense','wry'],th:['greed','mundane evil','Minnesota nice','stupidity'],rt:98,cast:['Frances McDormand','William H. Macy','Steve Buscemi','Peter Stormare'],crew:{Cinematography:'Roger Deakins',Editing:'Roderick Jaynes','Production Design':'Rick Heinrichs',Music:'Carter Burwell'},log:'A Minnesota car salesman hires two incompetent criminals to kidnap his wife for ransom. Pregnant police chief Marge Gunderson investigates the increasingly bloody fallout.',spoil:'Jerry\'s scheme collapses entirely. His co-conspirator is killed by Gaear (in a wood chipper). Jerry is arrested at a motel. Marge\'s final monologue — "And for what? A little money." — is the film\'s moral centre.',st:{Cinematography:'Roger Deakins turns Minnesota winter into a hostile alien landscape. White voids dwarf characters.',Color:'Everything bleached by snow. Blood on white is the film\'s recurring image.',Editing:'The Coens use comic timing in their cuts — a beat too long, a reaction held.',Sound:'Carter Burwell\'s Scandinavian folk-tinged score is deadpan and haunting.',Design:'Strip malls, budget motels, parking lots — the American Midwest rendered with anthropological precision.'},ds:'The Coens use the gap between the characters\' limited understanding and the audience\'s horror for pitch-black comedy.',mo:['the wood chipper','the snow','the parking ticket book','the True Crime disclaimer'],cr:'#a8d8ea'},
+{id:'revenant',t:'The Tree of Life',y:2011,d:'Terrence Malick',lang:'English',g:['Drama','Fantasy'],mood:['transcendent','meditative','overwhelming'],th:['grace vs. nature','childhood','God','memory'],rt:139,cast:['Brad Pitt','Jessica Chastain','Hunter McCracken','Sean Penn'],crew:{Cinematography:'Emmanuel Lubezki',Editing:'Mark Yoshikawa et al.',Music:'Various (classical)','Production Design':'Jack Fisk'},log:'A grieving man recalls his 1950s Texas childhood and the tension between his tender mother (grace) and stern father (nature). The film embeds this in the origin of the universe.',spoil:'The film contains no conventional plot resolution. Jack never reconciles his past. The finale — a beach beyond life — suggests continuation not conclusion.',st:{Cinematography:'Emmanuel Lubezki\'s "chasing light" — natural lighting, the "golden hour", wide lenses, extreme close-ups. The camera floats, never cuts conventionally.',Color:'Texas golden light vs. primordial blues and greens in the cosmic sequence.',Editing:'Non-linear, associative. The famous 20-minute creation sequence has no dialogue.',Sound:'Classical music (Preisner, Brahms, Berlioz) chosen first.',Design:'Period 1950s Waco, Texas, shot on location. Malick builds memory rather than period.'},ds:'Malick abandons conventional narrative for lyric cinema: images and music in association, not causation.',mo:['the whisper (voiceover prayer)','light through trees','the dinosaur (grace)','water'],cr:'#27ae60'},
+{id:'eternal',t:'Eternal Sunshine of the Spotless Mind',y:2004,d:'Michel Gondry',lang:'English',g:['Sci-Fi','Romance','Drama'],mood:['melancholic','bittersweet','inventive'],th:['memory','love','identity','loss'],rt:108,cast:['Jim Carrey','Kate Winslet','Tom Wilkinson','Kirsten Dunst','Mark Ruffalo','Elijah Wood'],crew:{Cinematography:'Ellen Kuras',Editing:'Valdís Óskarsdóttir',Music:'Jon Brion','Production Design':'Dan Leigh'},log:'Joel discovers his ex-girlfriend has undergone a procedure to erase him from her memory. Impulsively, he does the same — but changes his mind inside the process.',spoil:'The procedure is completed but, crucially, they find each other again and fall in love a second time. Dr Howard Mierzwiak\'s whole staff has had their memories of him erased (he sleeps with patients). The film ends on an ambiguous loop: do they choose to forget again?',st:{Cinematography:'Ellen Kuras shoots in-camera memory degradation: sets are literally erased during filming, actors removed mid-take.',Color:'Clementine\'s hair colour is a mood-clock: blue, green, red, orange.',Editing:'The film moves backward through memory. Valdís Óskarsdóttir\'s editing is logical inside its own dreamlike grammar.',Sound:'Jon Brion\'s score is wistful, repetitive, slightly wrong — like memory.',Design:'The reverse-construction sets are a genuine technical achievement.'},ds:'Gondry executes Kaufman\'s script through practical effects rather than digital. In-camera trickery makes the impossible feel handmade and fragile.',mo:['the blue hair','the beach house','the Charles River','book ends: same scene, twice'],cr:'#e91e8c'},
+{id:'rashomon',t:'Rashomon',y:1950,d:'Akira Kurosawa',lang:'Japanese',g:['Crime','Mystery','Drama'],mood:['philosophical','tense','haunting'],th:['truth','subjectivity','human nature','shame'],rt:88,cast:['Toshiro Mifune','Machiko Kyô','Masayuki Mori','Takashi Shimura'],crew:{Cinematography:'Kazuo Miyagawa',Editing:'Akira Kurosawa',Music:'Fumio Hayasaka'},log:'In a ruined gate in medieval Japan, three people take shelter from rain and recount a murder case that had four contradictory testimonies — including from the dead man.',spoil:'No single testimony is true. Each witness (including the ghost) lies to protect their self-image. The final act of a stranger who rescues an abandoned baby offers a counter-argument to nihilism.',st:{Cinematography:'Kazuo Miyagawa shoots the forest in moving dappled light, pointing the camera directly at the sun — unprecedented for 1950.',Color:'Extreme light and shadow — the forest is a space of ambiguity.',Editing:'The flash-back-within-flashback structure was innovative and influential.',Sound:'Ravel\'s Boléro (uncredited) drives the courtyard scene\'s rhythm.',Design:'The Rashomon gate itself — a ruin — frames humanity\'s collapse.'},ds:'Kurosawa invented the "Rashomon effect" as a formal device: contradictory subjectivities shown without resolution.',mo:['the gate','rain','the veil','the dagger'],cr:'#d4a843'},
+{id:'grave',t:'Grave of the Fireflies',y:1988,d:'Isao Takahata',lang:'Japanese',g:['Animation','Drama','War'],mood:['devastating','tender','heartbreaking'],th:['war','sibling love','survival','dignity'],rt:89,cast:['Tsutomu Tatsumi (voice)','Ayano Shiraishi (voice)'],crew:{Music:'Michio Mamiya',Studio:'Studio Ghibli','Art Direction':'Nizô Yamamoto'},log:'Fourteen-year-old Seita and his four-year-old sister Setsuko struggle to survive in the final months of World War II Japan after losing their mother.',spoil:'Setsuko dies of malnutrition. Seita dies shortly after, alone in a train station. The film opens with his death and works backward — we know the ending from the beginning.',st:{Cinematography:'Takahata uses an unshowy, documentary-adjacent animation style. No magic, no whimsy.',Color:'Warm firefly glow vs. grey, ashen aftermath. The fireflies are the only unbroken beauty.',Editing:'The film opens in 1945 and flashes back from Seita\'s death — a structural choice that makes every tender moment a mourning.',Sound:'Michio Mamiya\'s score is spare. The ambient sounds of hunger, insects, bombs.',Design:'Period-authentic Kobe and rural Japan. The dugout shelter is both sanctuary and grave.'},ds:'Takahata refuses war spectacle. The war is in the background; the foreground is hunger and routine and tenderness.',mo:['the fireflies','the tin of fruit drops','the shelter','the beach'],cr:'#e74c3c'},
+{id:'persona',t:'Persona',y:1966,d:'Ingmar Bergman',lang:'Swedish',g:['Drama','Mystery'],mood:['unsettling','hypnotic','cerebral'],th:['identity','art','exploitation','silence'],rt:83,cast:['Bibi Andersson','Liv Ullmann'],crew:{Cinematography:'Sven Nykvist',Editing:'Ulla Ryghe'},log:'A nurse is assigned to care for an actress who has stopped speaking. They retreat to a seaside cottage, and the boundary between them begins to dissolve.',spoil:'Alma (the nurse) may have merged with Elisabet (the actress) entirely. The film breaks down its own filmstrip mid-reel. Who is who, and whether any of it happened, is undecidable.',st:{Cinematography:'Nykvist\'s extreme close-ups and direct-address shots. The famous composite of the two women\'s faces into one.',Color:'High-contrast black-and-white. The beach and the cottage are bleached.',Editing:'Bergman interrupts the film with the raw filmstrip, a child\'s hand on a screen — meta-cinema.',Sound:'Minimal. Silence is the film\'s subject and its method.',Design:'A spare cottage; nature as psychological pressure.'},ds:'Bergman at his most radical: cinema examining its own apparatus while examining identity.',mo:['the composite face','the filmstrip','the photograph (Vietnam)','the beach'],cr:'#9b59b6'},
+{id:'3colors',t:'Three Colours: Blue',y:1993,d:'Krzysztof Kieślowski',lang:'French',g:['Drama'],mood:['mournful','interior','transcendent'],th:['freedom','grief','memory','music'],rt:98,cast:['Juliette Binoche','Benoît Régent','Charlotte Véry','Florence Pernel'],crew:{Cinematography:'Sławomir Idziak',Editing:'Jacques Witta',Music:'Zbigniew Preisner','Production Design':'Claude Lenoir'},log:'After losing her husband and daughter in a car crash, Julie attempts to cut herself off from her past life entirely — but music, memory, and human connection resist her.',spoil:'Her husband\'s symphony was actually co-written with a lover. Julie finishes it herself — transforming grief into connection. The film\'s final sequence shows each character as the symphony reaches its transcendent conclusion.',st:{Cinematography:'Idziak uses extreme colour saturation. Blue floods frames from unexpected angles — a light through glass, a submerged pool.',Color:'Blue dominates: freedom, grief, the sky. The film is a meditation on one colour.',Editing:'The "black screen" technique: when music overwhelms Julie, the image cuts to black — cinema yielding to sound.',Sound:'Preisner\'s music is the film\'s nervous system. The blue theme is both mourning and release.',Design:'Paris as emotional environment: the pool, the apartment, the café.'},ds:'Kieślowski\'s trilogy treats abstract political concepts (Liberty, Equality, Fraternity) as interior emotional states.',mo:['the blue glass pendant','the swimming pool','the lump of sugar','the woman recycling bottles'],cr:'#2980b9'},
+{id:'wild',t:'Wild Strawberries',y:1957,d:'Ingmar Bergman',lang:'Swedish',g:['Drama'],mood:['reflective','melancholic','redemptive'],th:['mortality','memory','regret','love'],rt:91,cast:['Victor Sjöström','Bibi Andersson','Ingrid Thulin','Gunnar Björnstrand'],crew:{Cinematography:'Gunnar Fischer',Editing:'Oscar Rosander',Music:'Erik Nordgren'},log:'An elderly professor travels by car to receive an honorary degree and revisits his life through memory, dreams, and the people he encounters along the way.',spoil:'Isak finally understands the emotional coldness that has defined his life. In his final dream, his parents wave to him across a lake — a gesture of peace he has spent a lifetime refusing.',st:{Cinematography:'Fischer contrasts stark Nordic light in dream sequences with warmer travel footage.',Color:'Black-and-white; the dream sequences are more expressionistic in contrast.',Editing:'Dreams and memories are intercut with the present journey without separation.',Sound:'A sparse score; silence amplifies interior life.',Design:'The childhood home (Bergman\'s most autobiographical) is rendered as both paradise and reproach.'},ds:'Bergman films interiority: the journey outside mirrors the journey inside. Sjöström\'s face carries the whole film.',mo:['the strawberry patch','the hearse and watch','the car journey','the lake'],cr:'#8e44ad'},
+{id:'1917',t:'1917',y:2019,d:'Sam Mendes',lang:'English',g:['War','Drama','Thriller'],mood:['tense','immersive','harrowing'],th:['duty','survival','futility of war','time'],rt:119,cast:['George MacKay','Dean-Charles Chapman','Mark Strong','Andrew Scott','Richard Madden','Colin Firth'],crew:{Cinematography:'Roger Deakins',Editing:'Lee Smith',Music:'Thomas Newman','Production Design':'Dennis Gassner'},log:'Two British soldiers are given a seemingly impossible mission: cross no man\'s land and enemy-held territory to deliver a message that will call off an attack — and save 1,600 lives.',spoil:'Schofield\'s companion Blake dies early. Schofield nearly drowns, is knocked unconscious, and must race across a field under fire to reach the colonel — he makes it with minutes to spare.',st:{Cinematography:'Roger Deakins shot in extremely long takes to simulate continuous time. The film appears (not actually) to be one unbroken shot.',Color:'Grey mud and green fields. Night bathed in hellish orange flares.',Editing:'Lee Smith\'s invisible work: stitching takes together in darkness, doorways and fast movement.',Sound:'Thomas Newman\'s score swells and retreats with Schofield\'s energy.',Design:'The trench systems were built at full scale from archival research.'},ds:'The apparent single-take technique creates a moral logic: we are locked to Schofield. There is no parallel editing, no relief.',mo:['the cherry tree in bloom','the rats','the cellar','the flare at night'],cr:'#7f8c8d'},
+{id:'burning',t:'Burning',y:2018,d:'Lee Chang-dong',lang:'Korean',g:['Mystery','Drama','Thriller'],mood:['enigmatic','tense','slow burn'],th:['class','desire','invisible crime','disappearance'],rt:148,cast:['Yoo Ah-in','Steven Yeun','Jeon Jong-seo'],crew:{Cinematography:'Hong Kyung-pyo',Editing:'Kim Da-won',Music:'Mowg','Production Design':'Shin Jeom-hui'},log:'A young man reconnects with a childhood acquaintance who has returned with a wealthy, mysterious new friend — who claims to burn greenhouses for pleasure.',spoil:'Haemi disappears. Jong-su cannot determine if Ben killed her — there is no proof of anything. He burns Ben\'s Porsche and kills him. Whether he committed murder or justice is deliberately unknowable.',st:{Cinematography:'Hong Kyung-pyo (also in Parasite) shoots with restraint. The famous sunset scene — Haemi dancing as the sun sets — is magical realism by refusal.',Color:'Earthy, naturalistic. The Porsche and Ben\'s apartment are the only "clean" things.',Editing:'Long, patient scenes. Lee Chang-dong withholds and withholds.',Sound:'Mowg\'s minimalist score. The dancing scene is nearly silent.',Design:'The poverty of Jong-su\'s farm vs. Ben\'s Gangnam apartment.'},ds:'Lee Chang-dong adapts Haruki Murakami\'s story into a class parable and an epistemological thriller simultaneously.',mo:['the greenhouse','the sunset dance','the cat','the Porsche'],cr:'#e67e22'},
+{id:'magnolia',t:'Magnolia',y:1999,d:'Paul Thomas Anderson',lang:'English',g:['Drama'],mood:['overwhelming','heartbreaking','redemptive'],th:['regret','coincidence','forgiveness','fathers and children'],rt:188,cast:['Tom Cruise','Julianne Moore','Philip Seymour Hoffman','John C. Reilly','William H. Macy','Jason Robards','Philip Baker Hall'],crew:{Cinematography:'Robert Elswit',Editing:'Dylan Tichenor',Music:'Jon Brion','Lyrics':'Aimee Mann'},log:'Nine loosely connected lives intersect over one day in the San Fernando Valley — each carrying the weight of failed relationships with parents and children.',spoil:'It rains frogs. This is not metaphor — it literally rains frogs, stopping the day\'s violence. Several characters reconcile, partially. Dixon\'s rap is the key: "the book says we may be through with the past, but the past ain\'t through with us."',st:{Cinematography:'Elswit uses a fluid, constantly-moving camera — circling, pursuing. The camera is as restless as the characters.',Color:'Valley light: warm, golden, slightly overexposed. Beauty over reality.',Editing:'The "Wise Up" sequence — every character singing along to the same Aimee Mann song — is among the greatest cuts in 1990s film.',Sound:'Jon Brion and Aimee Mann\'s songs are embedded in scenes, not played over them.',Design:'Valley homes and TV studios — the architecture of American disappointment.'},ds:'PTA makes emotion visceral through camera movement. He stages climactic conversations as choreography.',mo:['the frog rain','the number 82','the quiz shows','the "Wise Up" sequence'],cr:'#8e44ad'}
+];
+// ═══════════════════════════════════════════════
+//  CONSTANTS
+// ═══════════════════════════════════════════════
+const CRAFT={Cinematography:'Cinematography',Color:'Color & Lighting',Editing:'Editing',Sound:'Sound & Music',Design:'Production Design'};
+const EXERCISES=[
+  'Watch one scene with the sound muted. List every shot type and angle.',
+  'Sketch a floor plan of one scene and mark where the camera sits relative to characters.',
+  'Count every cut in a 3-minute sequence. Note what each cut achieves.',
+  'Write what the color palette communicates about a character\'s emotional state.',
+  'Identify one recurring motif and trace it through the film.',
+  'Compare two scenes with similar setups. How does context change meaning?'
+];
+// ═══════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════
+let S={w:{},seen:{},r:{},n:{},ck:{},sh:{},ex:{}};
+try{S=Object.assign(S,JSON.parse(localStorage.getItem('cinelab_v2')||'{}'))}catch(e){}
+const save=()=>{try{localStorage.setItem('cinelab_v2',JSON.stringify(S))}catch(e){}};
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const $=id=>document.getElementById(id);
+const get=id=>F.find(f=>f.id===id);
+const dec=y=>Math.floor(y/10)*10+'s';
+const tag=k=>({V:'<span class="tag tV">VERIFIED</span>',R:'<span class="tag tR">REPORTED</span>',AI:'<span class="tag tAI">AI INTERP.</span>',U:'<span class="tag tU">YOUR NOTE</span>'}[k]);
+let view='dash',cur=null,pick={g:[],mood:[],th:[]},filt={g:'',l:'',e:'',sort:'year'},open={},filmTab={};
+let toastT;
+// ═══════════════════════════════════════════════
+//  UTILITIES
+// ═══════════════════════════════════════════════
+function toast(msg){const t=$('toast');if(!t)return;t.textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2200)}
+function nav(){
+  const items=[['dash','Dashboard'],['rec','For You'],['browse','Browse'],['crew','People'],['study','Study']];
+  $('nav').innerHTML=items.map(([v,l])=>`<button class="${view===v?'on':''}" onclick="go('${v}')">${l}</button>`).join('');
+}
+function go(v,id){view=v;if(id!==undefined)cur=id;nav();render();scrollTo(0,0)}
+function mc(f,extra=''){
+  const r=S.r[f.id];
+  return `<div class="card m" style="--c:${f.cr}" onclick="go('film','${f.id}')">
+    <div class="card-inner">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div>
+          <b class="sans" style="font-size:15px">${esc(f.t)}</b>
+          <span class="mu" style="margin-left:6px">${f.y}</span>
+        </div>
+        <div class="mu" style="font-size:11px;white-space:nowrap">${f.rt}m</div>
+      </div>
+      <div class="mu tx-sm">${esc(f.d)} · ${f.lang}</div>
+      <div style="margin:4px 0">${f.g.map(x=>`<span class="chip">${x}</span>`).join('')}</div>
+      <div class="mu" style="font-size:13px;flex:1">${esc(f.log)}</div>
+      ${extra}
+      <div class="row" style="margin-top:8px;gap:6px">
+        ${S.w[f.id]?'<span class="chip" style="color:var(--ac);border-color:var(--ac)">★ Watchlist</span>':''}
+        ${S.seen[f.id]?'<span class="chip" style="color:var(--v);border-color:var(--v)">✓ Watched</span>':''}
+        ${r?`<span class="mu" style="font-size:12px">${'★'.repeat(r)}${'☆'.repeat(5-r)}</span>`:''}
+      </div>
+    </div>
+  </div>`;
+}
+function all(k){return [...new Set(F.flatMap(f=>f[k]))].sort()}
+function chips(k,vals){return vals.map(v=>`<span class="chip big ${pick[k].includes(v)?'sel':''}" onclick="tg('${k}','${v.replace(/'/g,"\\'")}')">${v}</span>`).join('')}
+function tg(k,v){const a=pick[k],i=a.indexOf(v);i<0?a.push(v):a.splice(i,1);render()}
+function stars(id){
+  return `<div class="stars">${[1,2,3,4,5].map(i=>`<span class="${S.r[id]>=i?'f':''}" onclick="event.stopPropagation();S.r['${id}']=${S.r[id]===i?0:i};save();render()">★</span>`).join('')}</div>`;
+}
+// ═══════════════════════════════════════════════
+//  VIEWS
+// ═══════════════════════════════════════════════
+function dash(){
+  const n=F.length,w=Object.keys(S.w).length,s=Object.keys(S.seen).length;
+  const rated=Object.entries(S.r).filter(([,v])=>v>0);
+  const avg=rated.length?(rated.reduce((a,b)=>a+b[1],0)/rated.length).toFixed(1):'—';
+  const exDone=Object.values(S.ex).reduce((a,o)=>a+Object.values(o).filter(Boolean).length,0);
+  const exTot=n*EXERCISES.length;
+
+  // Language breakdown
+  const langs={};F.forEach(f=>(langs[f.lang]=(langs[f.lang]||0)+1));
+  const topLangs=Object.entries(langs).sort((a,b)=>b[1]-a[1]).slice(0,5);
+
+  // Genre stats
+  const genres={};F.forEach(f=>f.g.forEach(g=>(genres[g]=(genres[g]||0)+1)));
+  const topGenres=Object.entries(genres).sort((a,b)=>b[1]-a[1]).slice(0,6);
+
+  const recentlyWatched=F.filter(f=>S.seen[f.id]).slice(-3);
+  const wl=F.filter(f=>S.w[f.id]);
+
+  return `
+<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:18px">
+  <div><div class="page-title">Your film lab</div><div class="mu">${n} films in the catalogue</div></div>
+  <button onclick="go('browse')">Browse all films →</button>
+</div>
+<div class="three" style="margin-bottom:16px">
+  <div class="stat-card"><div class="stat-label">Watched</div><div class="stat-num">${s}</div><div class="mu" style="margin-bottom:8px">of ${n} films</div><div class="bar"><i style="width:${(s/n*100).toFixed(1)}%"></i></div></div>
+  <div class="stat-card"><div class="stat-label">Avg Rating</div><div class="stat-num">${avg}</div><div class="mu">${rated.length} rated</div></div>
+  <div class="stat-card"><div class="stat-label">Study Progress</div><div class="stat-num">${exDone}</div><div class="mu">of ${exTot} exercises</div><div class="bar" style="margin-top:8px"><i style="width:${exTot?((exDone/exTot)*100).toFixed(1):0}%"></i></div></div>
+</div>
+<div class="two" style="margin-bottom:16px">
+  <div class="card">
+    <div class="section-label">Watchlist (${w})</div>
+    ${wl.length?`<div style="display:flex;flex-direction:column;gap:8px">${wl.map(f=>`<div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;padding:4px 0;border-bottom:1px solid var(--bd)" onclick="go('film','${f.id}')"><div><span class="sans" style="font-size:13px">${esc(f.t)}</span><span class="mu" style="margin-left:6px">${f.y}</span></div><span class="mu" style="font-size:12px">${f.rt}m</span></div>`).join('')}</div>`:'<div class="empty"><div class="empty-icon">🎬</div><div>Open a film and add it to your watchlist.</div></div>'}
+  </div>
+  <div class="card">
+    <div class="section-label">Catalogue breakdown</div>
+    <div style="margin-bottom:12px">
+      <div class="mu tx-xs" style="margin-bottom:6px">By language</div>
+      ${topLangs.map(([l,c])=>`<div style="display:flex;align-items:center;gap:8px;margin:4px 0"><span style="font-size:12px;width:110px;color:var(--tx)">${l}</span><div class="bar" style="flex:1;height:6px"><i style="width:${(c/n*100).toFixed(0)}%"></i></div><span class="mu tx-xs">${c}</span></div>`).join('')}
+    </div>
+    <div class="mu tx-xs" style="margin-bottom:6px">By genre</div>
+    <div>${topGenres.map(([g,c])=>`<span class="chip">${g} <span style="color:var(--ac)">${c}</span></span>`).join('')}</div>
+  </div>
+</div>
+${recentlyWatched.length?`<div class="card" style="margin-bottom:16px"><div class="section-label">Recently marked watched</div><div class="grid-sm">${recentlyWatched.map(f=>mc(f)).join('')}</div></div>`:''}
+<div class="legend">Tags used throughout: ${tag('V')} credit/year (high confidence — verify official sources) ${tag('R')} commonly reported (varies by cut) ${tag('AI')} one reading among many ${tag('U')} your notes</div>`;
+}
+function rec(){
+  const liked=F.filter(f=>S.r[f.id]>=4);
+  const sc=F.map(f=>{
+    let s=0,why=[];
+    [['g','genre'],['mood','mood'],['th','theme']].forEach(([k,l])=>f[k].forEach(x=>{if(pick[k].includes(x)){s+=3;why.push(`${l}: ${x}`)}}));
+    liked.forEach(l=>{if(l.id===f.id)return;if(l.d===f.d){s+=3;why.push(`same director as ${l.t} (rated ${S.r[l.id]}★)`)}else{const sh=l.g.filter(x=>f.g.includes(x));if(sh.length){s+=1;why.push(`shares ${sh[0]} with ${l.t}`)}}});
+    const commonLang=liked.filter(l=>l.lang===f.lang);if(commonLang.length)s+=1;
+    if(S.seen[f.id])s-=8;
+    return{f,s,why};
+  }).filter(x=>x.s>0).sort((a,b)=>b.s-a.s).slice(0,9);
+
+  return `<div class="page-title" style="margin-bottom:4px">For You</div>
+<div class="mu" style="margin-bottom:16px">Recommendations based on your picks and ratings.</div>
+<div class="card" style="margin-bottom:16px">
+  <div class="section-label">What are you in the mood for?</div>
+  <div style="margin-bottom:8px"><span class="mu tx-sm">Genre</span><br>${chips('g',all('g'))}</div>
+  <div style="margin-bottom:8px"><span class="mu tx-sm">Mood</span><br>${chips('mood',all('mood'))}</div>
+  <div><span class="mu tx-sm">Theme</span><br>${chips('th',all('th'))}</div>
+  ${pick.g.length+pick.mood.length+pick.th.length>0?`<div style="margin-top:10px"><button onclick="pick={g:[],mood:[],th:[]};render()">Clear filters</button></div>`:''}
+</div>
+<div class="grid">${sc.map(x=>mc(x.f,`<div style="margin-top:6px">${tag('AI')}<span class="mu tx-xs">${esc(x.why.join(' · '))}.</span></div>`)).join('')||
+  `<div class="empty" style="grid-column:1/-1"><div class="empty-icon">✦</div><div>Rate some films (4–5 stars) or select moods above to get personalised picks.</div></div>`}
+</div>
+<p class="legend">Matching uses tag overlap and your ratings — not a live AI call. Rate more films to sharpen results.</p>`;
+}
+function browse(){
+  const q=$('q').value.toLowerCase();
+  let list=F.filter(f=>{
+    const hay=[f.t,f.d,...f.cast,...Object.values(f.crew),...f.g,...f.th,...f.mood].join(' ').toLowerCase();
+    return(!q||hay.includes(q))&&(!filt.g||f.g.includes(filt.g))&&(!filt.l||f.lang===filt.l)&&(!filt.e||dec(f.y)===filt.e);
+  });
+  if(filt.sort==='year')list=[...list].sort((a,b)=>b.y-a.y);
+  else if(filt.sort==='title')list=[...list].sort((a,b)=>a.t.localeCompare(b.t));
+  else if(filt.sort==='rating')list=[...list].sort((a,b)=>(S.r[b.id]||0)-(S.r[a.id]||0));
+  else if(filt.sort==='runtime')list=[...list].sort((a,b)=>a.rt-b.rt);
+
+  const opt=(k,vals,l)=>`<select onchange="filt.${k}=this.value;render()"><option value="">${l}</option>${vals.map(v=>`<option ${filt[k]===v?'selected':''}>${v}</option>`).join('')}</select>`;
+  const sortOpt=`<select onchange="filt.sort=this.value;render()"><option value="year" ${filt.sort==='year'?'selected':''}>Year ↓</option><option value="title" ${filt.sort==='title'?'selected':''}>Title A–Z</option><option value="rating" ${filt.sort==='rating'?'selected':''}>Your rating</option><option value="runtime" ${filt.sort==='runtime'?'selected':''}>Runtime</option></select>`;
+
+  const activeFilters=(q?1:0)+(filt.g?1:0)+(filt.l?1:0)+(filt.e?1:0);
+  return `<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:12px">
+  <div><div class="page-title">Browse</div><div class="mu">${list.length} of ${F.length} films</div></div>
+</div>
+<div class="filter-bar">
+  ${opt('g',[...new Set(F.flatMap(f=>f.g))].sort(),'All genres')}
+  ${opt('l',[...new Set(F.map(f=>f.lang))].sort(),'All languages')}
+  ${opt('e',[...new Set(F.map(f=>dec(f.y)))].sort(),'All decades')}
+  ${sortOpt}
+  ${activeFilters>0?`<button onclick="filt={g:'',l:'',e:'',sort:'year'};$('q').value='';$('q-clear').style.display='none';render()">Clear (${activeFilters})</button>`:''}
+</div>
+<div class="grid">${list.map(f=>mc(f)).join('')||`<div class="empty" style="grid-column:1/-1"><div class="empty-icon">🔍</div><div>No films match your filters.</div></div>`}</div>
+<p class="legend">Catalogue: ${F.length} films. ${tag('V')} credits are high-confidence but verify against official sources.</p>`;
+}
+function crew(){
+  const q=$('q').value.toLowerCase();
+  const P={};
+  F.forEach(f=>{
+    (P[f.d]=P[f.d]||[]).push(['Director',f]);
+    Object.entries(f.crew).forEach(([r,names])=>names.split(', ').forEach(n=>(P[n]=P[n]||[]).push([r,f])));
+    f.cast.forEach(n=>(P[n]=P[n]||[]).push(['Cast',f]));
+  });
+  const rows=Object.keys(P).sort().filter(n=>!q||n.toLowerCase().includes(q));
+  const total=Object.keys(P).length;
+  return `<div class="page-title" style="margin-bottom:4px">People</div>
+<div class="mu" style="margin-bottom:16px">${total} people across ${F.length} films</div>
+<div class="card">
+  <table>
+    <thead><tr><th>Name</th><th>Credits in catalogue</th></tr></thead>
+    <tbody>${rows.slice(0,200).map(n=>`<tr><td style="white-space:nowrap;min-width:150px">${esc(n)}</td><td>${P[n].map(([r,f])=>`<a href="#" onclick="go('film','${f.id}');return false" style="color:var(--ac)">${esc(f.t)}</a><span class="mu"> (${r})</span>`).join(', ')}</td></tr>`).join('')}
+    ${rows.length>200?`<tr><td colspan=2 class="mu">…${rows.length-200} more — use search to filter.</td></tr>`:''}</tbody>
+  </table>
+</div>
+<p class="legend">Key credits only. For complete crew lists consult IMDb or the AFI Catalog.</p>`;
+}
+function study(){
+  return `<div class="page-title" style="margin-bottom:4px">Film Study</div>
+<div class="mu" style="margin-bottom:16px">One craft focus per film. Complete exercises to build analytical skills.</div>
+<div class="grid">${F.map((f,fi)=>{
+  const o=S.ex[f.id]||{};
+  const done=EXERCISES.filter((_,i)=>o[i]).length;
+  const key=Object.keys(f.st)[fi%Object.keys(CRAFT).length];
+  return `<div class="card">
+    <div class="card-inner">
+      <b class="sans" style="font-size:14px">${esc(f.t)} <span class="mu" style="font-weight:400">${f.y}</span></b>
+      <div class="mu tx-xs" style="margin:2px 0">Focus: <b style="color:var(--ac)">${CRAFT[key]}</b></div>
+      <p style="font-size:13px;line-height:1.5">${tag('AI')}${esc(f.st[key])}</p>
+      <div style="margin:8px 0">
+        ${EXERCISES.map((e,i)=>`<label class="ck"><input type="checkbox" ${o[i]?'checked':''} onchange="(S.ex['${f.id}']=S.ex['${f.id}']||{})[${i}]=this.checked?1:0;save();render()"><span style="font-size:12px;color:var(--mu)">${e}</span></label>`).join('')}
+      </div>
+      <div style="margin-bottom:8px">
+        <div class="mu tx-xs" style="margin-bottom:4px">${done}/${EXERCISES.length} exercises</div>
+        <div class="bar"><i style="width:${(done/EXERCISES.length*100).toFixed(0)}%"></i></div>
+      </div>
+      <button onclick="go('film','${f.id}')">Open film →</button>
+    </div>
+  </div>`;
+}).join('')}</div>`;
+}
+function film(){
+  const f=get(cur);
+  if(!f)return '<p class="mu">Film not found. <a href="#" onclick="go(\'browse\')">Browse films</a></p>';
+  const sh=(S.sh[f.id]=S.sh[f.id]||[]);
+  const ck=(S.ck[f.id]=S.ck[f.id]||[{t:'Watch once without taking notes',d:0},{t:'Rewatch focusing on cinematography',d:0},{t:'Rewatch focusing on sound design',d:0}]);
+  const spoil=open[f.id+'_s'];
+  const tab=filmTab[f.id]||'overview';
+
+  return `<div style="margin-bottom:14px"><button onclick="go('browse')">← Back</button></div>
+<div class="film-hero" style="--c:${f.cr}">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px">
+    <div>
+      <h2>${esc(f.t)}</h2>
+      <div class="mu">${tag('V')}${esc(f.d)} · ${f.lang} · ${f.g.join(', ')}</div>
+    </div>
+    <div class="runtime-badge">⏱ ~${f.rt} min ${tag('R')}</div>
+  </div>
+  <div class="row" style="margin-top:14px;gap:8px">
+    <button class="${S.w[f.id]?'on':''}" onclick="S.w['${f.id}']=!S.w['${f.id}'];save();toast(S.w['${f.id}']?'Added to watchlist':'Removed from watchlist');render()">${S.w[f.id]?'★ On watchlist':'Add to watchlist'}</button>
+    <button class="${S.seen[f.id]?'on':''}" onclick="S.seen['${f.id}']=!S.seen['${f.id}'];save();toast(S.seen['${f.id}']?'Marked watched':'Unmarked');render()">${S.seen[f.id]?'✓ Watched':'Mark watched'}</button>
+    ${stars(f.id)}
+  </div>
+</div>
+
+<div class="tabs">
+  ${[['overview','Overview'],['craft','Craft Analysis'],['shots','Shot Log'],['study','Study'],['notes','Notes']].map(([k,l])=>`<div class="tab ${tab===k?'on':''}" onclick="filmTab['${f.id}']='${k}';render()">${l}</div>`).join('')}
+</div>
+
+${tab==='overview'?`
+<div class="two">
+  <div class="card">
+    <div class="section-label">Logline</div>
+    <p>${tag('AI')}${esc(f.log)}</p>
+    <div class="section-label" style="margin-top:12px">Themes & Motifs</div>
+    <div style="margin-bottom:8px">${f.th.map(x=>`<span class="chip">${x}</span>`).join('')}</div>
+    <div class="mu tx-sm">Recurring: ${f.mo.map(esc).join(', ')}.</div>
+    <div class="section-label" style="margin-top:14px">Spoiler summary</div>
+    <button onclick="open['${f.id}_s']=!open['${f.id}_s'];render()" style="margin-bottom:6px">${spoil?'Hide spoilers':'Reveal spoilers'}</button>
+    <p class="${spoil?'':'hide'}">${tag('AI')}<span class="${spoil?'show':'spoil'}" onclick="open['${f.id}_s']=true;render()">${esc(f.spoil)}</span></p>
+  </div>
+  <div>
+    <div class="card" style="margin-bottom:12px">
+      <div class="section-label">Cast</div>
+      ${tag('V')}${f.cast.map(esc).join(', ')}
+    </div>
+    <div class="card">
+      <div class="section-label">Key crew</div>
+      <table>${Object.entries(f.crew).map(([r,n])=>`<tr><td class="mu" style="width:140px">${r}</td><td>${tag('V')}${esc(n)}</td></tr>`).join('')}</table>
+      <div class="mu tx-xs" style="margin-top:8px">Full crew not listed. Verify at IMDb or official credits.</div>
+    </div>
+  </div>
+</div>
+`:''}
+
+${tab==='craft'?`
+<div class="card" style="margin-bottom:14px">
+  <div class="section-label">Director approach</div>
+  <p>${tag('AI')}<b>${esc(f.d)}</b>: ${esc(f.ds)}</p>
+</div>
+<div class="card">
+  <div class="section-label">Craft analysis</div>
+  <table>
+    <thead><tr><th>Element</th><th>Analysis</th></tr></thead>
+    <tbody>${Object.entries(f.st).map(([k,v])=>`<tr><td class="mu" style="min-width:140px;white-space:nowrap">${CRAFT[k]||k}</td><td>${tag('AI')}${esc(v)}</td></tr>`).join('')}</tbody>
+  </table>
+  <div class="mu tx-xs" style="margin-top:10px">All analysis is interpretive. Lens/aperture data are not published here — add your own findings from reliable sources.</div>
+</div>
+`:''}
+
+${tab==='shots'?`
+<div class="card" style="margin-bottom:12px">
+  <div class="section-label">Shot log — ${f.t}</div>
+  <div class="mu tx-sm" style="margin-bottom:10px">Log shots as you watch. Timestamps place them on the timeline below.</div>
+  <div class="timeline" id="tl_${f.id}" onclick="tlClick(event,'${f.id}')">
+    ${sh.map((s,i)=>`<div class="timeline-mark ${open.shotSel===i?'sel':''}" style="left:${Math.min(97,s.m/f.rt*100)}%" title="${esc(s.ts)}: ${esc(s.type)}" onclick="event.stopPropagation();open.shotSel=${open.shotSel===i?null:i};render()"></div>`).join('')}
+    <div style="position:absolute;bottom:2px;left:4px;font:10px system-ui;color:var(--mu)">0:00</div>
+    <div style="position:absolute;bottom:2px;right:4px;font:10px system-ui;color:var(--mu)">${Math.floor(f.rt/60)}:${String(f.rt%60).padStart(2,'0')}</div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin:10px 0">
+    <input id="s_ts_${f.id}" placeholder="mm:ss or h:mm:ss" style="min-width:0">
+    <input id="s_ac_${f.id}" placeholder="Act" style="min-width:0">
+    <input id="s_sq_${f.id}" placeholder="Sequence" style="min-width:0">
+    <input id="s_sc_${f.id}" placeholder="Scene" style="min-width:0">
+    <select id="s_ty_${f.id}"><option>Wide</option><option>Medium</option><option>Close-up</option><option>Extreme close-up</option><option>Over-the-shoulder</option><option>POV</option><option>Insert</option><option>Aerial</option></select>
+    <select id="s_an_${f.id}"><option>Eye level</option><option>Low angle</option><option>High angle</option><option>Dutch</option><option>Bird\'s eye</option><option>Worm\'s eye</option></select>
+    <select id="s_mv_${f.id}"><option>Static</option><option>Pan</option><option>Tilt</option><option>Dolly</option><option>Handheld</option><option>Crane/Jib</option><option>Steadicam</option><option>Zoom</option><option>360°</option></select>
+  </div>
+  <div class="row" style="margin-bottom:10px">
+    <input id="s_nt_${f.id}" placeholder="Composition, light, colour, sound, edit, narrative purpose…" style="flex:1;min-width:180px">
+    <button onclick="addShot('${f.id}')">Add shot</button>
+  </div>
+  ${sh.length?`<div style="overflow-x:auto"><table>
+    <thead><tr><th>Time</th><th>Act › Seq › Scene</th><th>Shot</th><th>Observation</th><th></th></tr></thead>
+    <tbody>${[...sh].map((s,i)=>[s,i]).sort((a,b)=>a[0].m-b[0].m).map(([s,i])=>`<tr style="${open.shotSel===i?'background:var(--bg3)':''}">
+      <td style="white-space:nowrap">${esc(s.ts)}</td>
+      <td class="mu">${[s.ac,s.sq,s.sc].filter(Boolean).map(esc).join(' › ')||'—'}</td>
+      <td style="white-space:nowrap;font-size:12px">${esc(s.type)} · ${esc(s.an)} · ${esc(s.mv)}</td>
+      <td>${tag('U')}${esc(s.nt)}</td>
+      <td><button class="small danger" onclick="S.sh['${f.id}'].splice(${i},1);save();render()">✕</button></td>
+    </tr>`).join('')}
+    </tbody>
+  </table></div>`:`<div class="empty"><div class="empty-icon">🎞</div><div>No shots logged yet. Add a timestamp above.</div></div>`}
+</div>
+<div class="card">
+  <div class="section-label">Frame analysis</div>
+  <div class="mu tx-sm" style="margin-bottom:8px">Load a screenshot from your device to annotate it. Stays local — nothing is uploaded.</div>
+  <input type="file" accept="image/*" onchange="fr(this)">
+  <div id="fr"></div>
+  <div class="fr-guide">
+    <span>Subject placement</span><span>Leading lines / depth</span><span>Light direction</span>
+    <span>Colour palette</span><span>What the frame withholds</span><span>Figure–ground contrast</span>
+  </div>
+</div>
+`:''}
+
+${tab==='study'?`
+<div class="card" style="margin-bottom:12px">
+  <div class="section-label">Craft focus: ${esc(f.t)}</div>
+  <table>
+    <tbody>${Object.entries(f.st).map(([k,v])=>`<tr><td class="mu" style="min-width:130px">${CRAFT[k]||k}</td><td>${tag('AI')}${esc(v)}</td></tr>`).join('')}</tbody>
+  </table>
+</div>
+<div class="card">
+  <div class="section-label">Study exercises</div>
+  ${EXERCISES.map((e,i)=>{const o=S.ex[f.id]||{};return `<label class="ck"><input type="checkbox" ${o[i]?'checked':''} onchange="(S.ex['${f.id}']=S.ex['${f.id}']||{})[${i}]=this.checked?1:0;save();render()"><span style="font-size:14px">${e}</span></label>`;}).join('')}
+  <div style="margin-top:12px">
+    <div class="mu tx-xs" style="margin-bottom:4px">${Object.values(S.ex[f.id]||{}).filter(Boolean).length}/${EXERCISES.length} done</div>
+    <div class="bar"><i style="width:${(Object.values(S.ex[f.id]||{}).filter(Boolean).length/EXERCISES.length*100).toFixed(0)}%"></i></div>
+  </div>
+</div>
+<div class="card" style="margin-top:12px">
+  <div class="section-label">Study checklist</div>
+  ${ck.map((c,i)=>`<label class="ck"><input type="checkbox" ${c.d?'checked':''} onchange="S.ck['${f.id}'][${i}].d=this.checked?1:0;save();render()"><span style="font-size:14px">${esc(c.t)}</span></label>`).join('')}
+  <div class="row" style="margin-top:8px">
+    <input id="ckn_${f.id}" placeholder="Add checklist item" style="flex:1;min-width:0">
+    <button onclick="const v=$('ckn_${f.id}').value.trim();if(v){S.ck['${f.id}'].push({t:v,d:0});$('ckn_${f.id}').value='';save();render()}">Add</button>
+  </div>
+</div>
+`:''}
+
+${tab==='notes'?`
+<div class="card">
+  <div class="section-label">Your rating</div>
+  ${stars(f.id)}
+  <div class="section-label" style="margin-top:16px">Your review & notes</div>
+  <textarea placeholder="Write your review, observations, questions…" oninput="S.n['${f.id}']=this.value;save()">${esc(S.n[f.id]||'')}</textarea>
+</div>
+`:''}`;
+}
+function addShot(id){
+  const f=get(id);
+  const ts=$(`s_ts_${id}`).value.trim();
+  const p=ts.split(':').map(Number);
+  if(p.some(isNaN)||!ts)return alert('Enter timestamp as mm:ss or h:mm:ss');
+  const m=p.length===3?p[0]*60+p[1]+p[2]/60:p[0]+(p[1]||0)/60;
+  S.sh[id].push({ts,m,ac:$(`s_ac_${id}`).value,sq:$(`s_sq_${id}`).value,sc:$(`s_sc_${id}`).value,type:$(`s_ty_${id}`).value,an:$(`s_an_${id}`).value,mv:$(`s_mv_${id}`).value,nt:$(`s_nt_${id}`).value});
+  save();render();
+  toast('Shot added at '+ts);
+}
+function tlClick(e,id){
+  const f=get(id);const rect=e.currentTarget.getBoundingClientRect();
+  const pct=(e.clientX-rect.left)/rect.width;
+  const m=pct*f.rt;const mm=Math.floor(m),ss=Math.round((m-mm)*60);
+  $(`s_ts_${id}`).value=`${mm}:${String(ss).padStart(2,'0')}`;
+}
+function fr(el){
+  const r=new FileReader();
+  r.onload=()=>{$('fr').innerHTML=`<img src="${r.result}" style="max-width:100%;border-radius:8px;margin:10px 0"><textarea placeholder="Frame notes: composition, rule of thirds, colour temperature, depth, what the frame includes and excludes…" style="margin-top:4px"></textarea>`};
+  if(el.files[0])r.readAsDataURL(el.files[0]);
+}
+// ═══════════════════════════════════════════════
+//  RENDER & INIT
+// ═══════════════════════════════════════════════
+function render(){
+  const v={dash,rec,browse,crew,study,film}[view];
+  $('app').innerHTML=v?v():'';
+}
+$('q').addEventListener('input',function(){
+  $('q-clear').style.display=this.value?'block':'none';
+  if(view!=='crew'&&view!=='browse'){view='browse';nav()}render();
+});
+$('q').addEventListener('keydown',e=>{if(e.key==='Escape'){$('q').value='';$('q-clear').style.display='none';render()}});
+nav();render();
+</script>
+</body>
+</html>
